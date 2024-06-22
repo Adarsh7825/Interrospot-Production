@@ -20,7 +20,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import CreateInteviewByRecruiter from './components/core/Dashboard/RecruiterDashboard/CreateInteviewByRecruiter';
 import DataContextProvider from './context/DataContext';
 import RoomData from './components/core/Room/RoomData';
-import Room from './components/core/Room/Room';
+import Room from './pages/Room';
 import CreateQuestionForm from './components/core/Question/CreateQuestionForm';
 
 function App() {
@@ -41,13 +41,13 @@ function App() {
             <Route path='/contact' element={<Contact />} />
             <Route path="/dashboard/my-profile" element={<PrivateRoute><MyProfile /></PrivateRoute>} />
             <Route element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            {/* {
+            {
               user?.accountType === ACCOUNT_TYPE.RECRUITER && (
                 <>
+                  <Route path="dashboard/form" element={<CreateInteviewByRecruiter />} />
                 </>
               )
-            } */}
-            <Route path="dashboard/form" element={<CreateInteviewByRecruiter />} />
+            }
             {
               user?.accountType === ACCOUNT_TYPE.ADMIN && (
                 <>

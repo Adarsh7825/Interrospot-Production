@@ -1,16 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { ACCOUNT_TYPE } from '../../../utils/constants';
-import { useSelector } from 'react-redux';
+import { uploadPhotoForCandidate, uploadPhotoForInterviewer } from '../../../services/operations/uploadAPI';
 
 const CameraCapture = ({ onCapture, roomId }) => {
     const videoRef = useRef(null);
     const [capturedImage, setCapturedImage] = useState(null);
     const user = useSelector((state) => state.profile.user);
+    const dispatch = useDispatch();
 
     useEffect(() => {
+        startCamera();
         return () => {
-            // Cleanup the video stream when the component unmounts
             if (videoRef.current && videoRef.current.srcObject) {
                 videoRef.current.srcObject.getTracks().forEach(track => track.stop());
             }
@@ -37,71 +39,29 @@ const CameraCapture = ({ onCapture, roomId }) => {
         const imageData = canvas.toDataURL('image/png');
         setCapturedImage(imageData);
         onCapture(imageData);
+        uploadPhoto(imageData);
     };
 
-    const uploadPhotoforCandidate = async () => {
-        const blob = await fetch(capturedImage).then(res => res.blob());
-        const formData = new FormData();
-        formData.append('imageUrl', blob, 'photo.png'); // Ensure the key matches the backend expectation
+    const uploadPhoto = async (imageData) => {
+        const blob = await fetch(imageData).then(res => res.blob());
 
-        try {
-            const response = await axios.post(`https://interrospot-backend.vercel.app/api/v1/captureImage/uploadImage/${roomId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            console.log('File uploaded successfully:', response.data);
-
-            if (response.data && response.data.room && response.data.room.imageUrl) {
-                console.log('Image URL:', response.data.room.imageUrl);
-            } else {
-                console.error('Unexpected response structure:', response.data);
-            }
-        } catch (error) {
-            console.error('Error uploading file:', error);
-        }
-    };
-
-    const uploadPhotoforInterviewer = async () => {
-        const blob = await fetch(capturedImage).then(res => res.blob());
-        const formData = new FormData();
-        formData.append('imageUrl', blob, 'photo.png'); // Ensure the key matches the backend expectation
-
-        try {
-            const response = await axios.post(`https://interrospot-backend.vercel.app/api/v1/captureImage/uploadImageforInterviewer/${roomId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            console.log('File uploaded successfully:', response.data);
-
-            if (response.data && response.data.room && response.data.room.imageUrl) {
-                console.log('Image URL:', response.data.room.imageUrlforInterviewer);
-            } else {
-                console.error('Unexpected response structure:', response.data);
-            }
-        } catch (error) {
-            console.error('Error uploading file:', error);
-        }
-    };
-
-    const uploadPhoto = () => {
         if (user.accountType === ACCOUNT_TYPE.CANDIDATE) {
-            uploadPhotoforCandidate();
+            // dispatch(uploadPhotoForCandidate(roomId, blob));
         } else {
-            uploadPhotoforInterviewer();
+            // dispatch(uploadPhotoForInterviewer(roomId, blob));
         }
     };
 
     return (
-        <div>
-            <video ref={videoRef} style={{ width: '100%' }}></video>
-            <button onClick={startCamera}>Start Camera</button>
-            <button onClick={capturePhoto}>Capture Photo</button>
-            {capturedImage && <img src={capturedImage} alt="Captured" />}
-            <button onClick={uploadPhoto}>Upload Photo</button>
+        <div className="flex flex-col items-center">
+            <video ref={videoRef} className="w-full rounded-lg mb-4"></video>
+            <button
+                onClick={capturePhoto}
+                className="px-4 py-2 bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+            >
+                Capture Photo
+            </button>
+            {capturedImage && <img src={capturedImage} alt="Captured" className="mt-4 rounded-lg" />}
         </div>
     );
 };

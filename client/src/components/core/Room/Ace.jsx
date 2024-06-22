@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AceEditor from 'react-ace';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
 import { diff_match_patch } from 'diff-match-patch';
+import { updateRooms } from '../../../services/operations/roomAPI';
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/mode-java';
 import 'ace-builds/src-noconflict/mode-python';
@@ -20,8 +21,8 @@ import 'ace-builds/src-noconflict/theme-tomorrow_night';
 import 'ace-builds/src-noconflict/theme-vibrant_ink';
 import 'ace-builds/src-noconflict/theme-one_dark';
 import 'ace-builds/src-noconflict/ext-language_tools';
-import { useSelector } from 'react-redux';
 import Settings from './Settings';
+import useDebouncedEffect from './useDebouncedEffect';
 
 const Ace = ({
     updateRoom,
@@ -38,90 +39,62 @@ const Ace = ({
     running,
     run
 }) => {
+    const dispatch = useDispatch();
     const dmp = new diff_match_patch();
     const [theme, setTheme] = useState('monokai');
     const [fontSize, setFontSize] = useState(18);
     const [fontFamily, setFontFamily] = useState('monospace');
-    const sent = useRef(true);
-    const REACT_APP_BACKEND_URL = 'https://interrospot-backend.vercel.app/';
     const { user } = useSelector((state) => state.profile);
 
     // Ensure code is initialized
     const [initializedCode, setInitializedCode] = useState(code || '');
 
-    useEffect(() => {
-        if (!sent.current) return;
+    useDebouncedEffect(() => {
+        if (initializedCode !== undefined) {
+            dispatch(updateRooms(roomid, code, language, user.token));
+        }
+    }, [code], 2000);
 
-        sent.current = false;
-        const sendData = setTimeout(() => {
-            axios({
-                method: 'patch',
-                url: `${REACT_APP_BACKEND_URL}rooms/update`,
-                headers: {
-                    'Authorization': `Bearer ${user.token}`,
-                },
-                data: {
-                    'room': {
-                        roomid,
-                        code,
-                        language
-                    },
-                }
-            })
-                .then((res) => {
-                    console.log("patched successfully", res)
-                })
-                .catch((err) => {
-                    console.log("error from axios", err)
-                })
-            sent.current = true;
-        }, 2000)
-        console.log("sendData", sendData)
-
-    }, [code])
-
-    function handleChange(newValue, event) {
+    const handleChange = (newValue) => {
         if (initializedCode === undefined) {
             console.error('Old Value is undefined');
             return;
         }
         const patch = dmp.patch_make(initializedCode, newValue);
-        console.log('Generated patch:', patch);
         setInitializedCode(newValue);
         updateRoom(patch);
         setCode(newValue);
-        console.log('Updated code:', newValue);
-    }
+    };
 
     const handleIOChange = (newValue) => {
         setInput(newValue);
         IOEMIT(newValue, output, language);
     };
 
-    function handleLangChange(e) {
-        // save this code in localsotrage in roomid
+    const handleLangChange = (e) => {
         setLanguage(e);
         IOEMIT(input, output, e);
-    }
+    };
 
     return (
-        <div id="editor">
-            <Settings
-                setLanguage={setLanguage}
-                setTheme={setTheme}
-                setFontSize={setFontSize}
-                setFontFamily={setFontFamily}
-                language={language}
-                theme={theme}
-                fontSize={fontSize}
-                fontFamily={fontFamily}
-                updateRoom={updateRoom}
-                run={run}
-                handleLangChange={handleLangChange}
-                roomid={roomid}
-                running={running}
-            />
-            <div id='workspace' style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div className="h-full">
+            <div className="flex justify-between items-center p-4 bg-gray-800 text-white">
+                <Settings
+                    setLanguage={setLanguage}
+                    setTheme={setTheme}
+                    setFontSize={setFontSize}
+                    setFontFamily={setFontFamily}
+                    language={language}
+                    theme={theme}
+                    fontSize={fontSize}
+                    fontFamily={fontFamily}
+                    updateRoom={(patch) => socket.emit('update', { roomid, patch })}
+                    run={run}
+                    handleLangChange={handleLangChange}
+                    running={running}
+                />
+            </div>
+            <div id='workspace' className="flex flex-col h-full">
                 <AceEditor
                     setOptions={{
                         useWorker: false,
@@ -138,39 +111,13 @@ const Ace = ({
                     name="ACE_EDITOR"
                     value={code}
                     fontSize={18}
-                    height='50%'
+                    height='100%'
                     width='100%'
                     setAutoScrollEditorIntoView
                     defaultValue=''
                     ref={EditorRef}
                     editorProps={{ $blockScrolling: true }}
                 />
-                <div id='io' style={{ display: 'flex', flexDirection: 'column', height: '50%' }}>
-                    <div className="input" style={{ flex: 1 }}>
-                        <h5>Input</h5>
-                        <AceEditor
-                            theme={theme}
-                            mode={''}
-                            value={input}
-                            width="100%"
-                            height="100%"
-                            onChange={handleIOChange}
-                            fontSize={fontSize}
-                        />
-                    </div>
-                    <div className="output" style={{ flex: 1 }}>
-                        <h5>Output</h5>
-                        <AceEditor
-                            theme={theme}
-                            mode={''}
-                            value={output}
-                            width="100%"
-                            height="100%"
-                            readOnly={true}
-                            fontSize={fontSize}
-                        />
-                    </div>
-                </div>
             </div>
         </div>
     );

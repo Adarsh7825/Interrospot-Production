@@ -1,12 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { DataContext } from '../../../context/DataContext';
 import { generateFromString } from 'generate-avatar';
-import axios from 'axios';
 import CameraCapture from './CameraCapture';
+import { fetchRoom } from '../../../services/operations/roomAPI';
 
 const RoomData = () => {
     const { setCurrRoom, setUser, socket } = useContext(DataContext);
@@ -15,7 +15,7 @@ const RoomData = () => {
     const { user } = useSelector((state) => state.profile);
     const { roomId } = useParams();
     const navigate = useNavigate();
-    const REACT_APP_BACKEND_URL = 'https://interrospot-backend.vercel.app/';
+    const dispatch = useDispatch();
 
     function loadingStart() {
         setIsLoading(true);
@@ -40,34 +40,19 @@ const RoomData = () => {
         }
 
         loadingStart();
-        axios({
-            method: 'get',
-            url: `${REACT_APP_BACKEND_URL}rooms/fetch?id=${roomId}`,
-            headers: {
-                Authorization: `Bearer ${user.token}`
-            }
-        })
-            .then((response) => {
-                setCurrRoom(response.data);
-                socket.emit('joinRoom', { roomId, user });
-                loadingStop();
-                navigate(`/room/${roomId}`, { state: { roomid: roomId } });
-            })
-            .catch((error) => {
-                loadingStop();
-                toast.error('Room not found', {
-                    // position: toast.POSITION.TOP_RIGHT
-                });
-                console.log(error);
+        try {
+            const roomData = dispatch(fetchRoom(roomId, user.token));
+            setCurrRoom(roomData);
+            socket.emit('joinRoom', { roomId, user });
+            navigate(`/room/${roomId}`, { state: { roomid: roomId } });
+        } catch (error) {
+            toast.error('Room not found', {
+                // position: toast.POSITION.TOP_RIGHT
             });
-    };
-
-    const copyRoomId = (e) => {
-        const id = e.target.innerText;
-        navigator.clipboard.writeText(id);
-        toast.success('Room ID Copied ', {
-            // position: toast.POSITION.TOP_RIGHT
-        });
+            console.log(error);
+        } finally {
+            loadingStop();
+        }
     };
 
     useEffect(() => {
@@ -96,20 +81,23 @@ const RoomData = () => {
     }, [user]);
 
     return (
-        <div>
-            <div className="room-data text-white">
-                <div className="userData">
-                    {user.avatar ?
-                        <img src={user.avatar} height={100} alt='user profile' style={{ borderRadius: '50%', width: '5rem', height: '5rem' }} />
-                        : <img height={100} src={`data:image/svg+xml;utf8,${generateFromString(user.email + user.name)}`} alt="user profile" style={{ borderRadius: '50%', width: '5rem', height: '5rem' }} />
-                    }
-                </div>
-                <div className="join-room">
-                    <div>
-                        <button onClick={() => joinRoom(roomId)}>Join Room</button>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+            <div className="w-full max-w-md p-4 bg-gray-800 rounded-lg shadow-md">
+                <div className="flex flex-col items-center">
+                    <div className="mb-4">
+                        {user.avatar ?
+                            <img src={user.avatar} alt='user profile' className="rounded-full w-20 h-20" />
+                            : <img src={`data:image/svg+xml;utf8,${generateFromString(user.email + user.name)}`} alt="user profile" className="rounded-full w-20 h-20" />
+                        }
                     </div>
+                    <CameraCapture onCapture={setCapturedPhoto} roomId={roomId} />
+                    <button
+                        onClick={() => joinRoom(roomId)}
+                        className="mt-4 px-4 py-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 hover:from-blue-500 hover:via-purple-600 hover:to-pink-700 text-white font-bold rounded"
+                    >
+                        Join Room
+                    </button>
                 </div>
-                <CameraCapture onCapture={setCapturedPhoto} roomId={roomId} />
             </div>
         </div>
     );

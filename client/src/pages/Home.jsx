@@ -116,7 +116,7 @@ const Home = () => {
                         </CTAButton>
 
                         <CTAButton active={false} linkto={"/dashboard/form"}>
-                            Let's Hire
+                            Create Interview
                         </CTAButton>
                     </div>
                 </div>
