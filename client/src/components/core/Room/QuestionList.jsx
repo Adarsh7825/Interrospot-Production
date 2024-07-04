@@ -44,7 +44,7 @@ const QuestionList = ({ questions, handleStarClick, handleInputChange, newQuesti
                     value={newQuestionText}
                     onChange={(e) => setNewQuestionText(e.target.value)}
                     placeholder="Enter new question"
-                    className="input-field w-full p-2 bg-gray-700 rounded-md mb-4 text-white"
+                    className="input-field w-full p-2 bg-gray-700 rounded-md mb-4 text-black"
                 />
                 <button onClick={addQuestion} className="add-question-button w-full p-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 hover:from-blue-500 hover:via-purple-600 hover:to-pink-700 text-white font-bold rounded">
                     Add Question

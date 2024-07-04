@@ -189,7 +189,7 @@ function CreateInterviewByRecruiter() {
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
                 />
             </div>
-            <button type="submit" className="bg-black text-whitey font-bold py-2 px-4 rounded">Submit</button>
+            <button type="submit" className="bg-black text-white font-bold py-2 px-4 rounded">Submit</button>
         </form>
     );
 }
