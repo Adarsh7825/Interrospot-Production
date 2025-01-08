@@ -152,6 +152,13 @@ function LoginForm() {
             {/* Demo Account Selection */}
             <div className="flex flex-col gap-y-4 mb-6">
                 <h3 className="text-richblack-5 text-lg font-semibold">Quick Access Demo Accounts</h3>
+                <div className="bg-richblack-900 p-3 rounded-lg border border-richblack-700 mb-4">
+                    <p className="text-richblack-200 text-sm">
+                        <span className="text-yellow-50">Note:</span> Clicking any demo account will automatically:
+                        <br />1. Log you in on this window
+                        <br />2. Open an incognito window with the other role for testing the real-time interaction
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
                         type="button"
