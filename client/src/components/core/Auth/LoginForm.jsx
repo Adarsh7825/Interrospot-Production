@@ -1,9 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"
 import { FaUserTie, FaCode } from "react-icons/fa"
 import { useDispatch } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
 import { login } from "../../../services/operations/authAPI"
+import { toast } from "react-hot-toast"
 
 function LoginForm() {
     const navigate = useNavigate()
@@ -15,6 +16,50 @@ function LoginForm() {
 
     const [showPassword, setShowPassword] = useState(false)
     const { email, password } = formData
+
+    useEffect(() => {
+        // Check which demo account to pre-fill
+        const params = new URLSearchParams(window.location.search)
+        const demoType = params.get('demo')
+
+        if (demoType === 'interviewer') {
+            // If interviewer demo was clicked, pre-fill candidate details
+            const candidateEmail = "adarshgupta2626@gmail.com"
+            const candidatePassword = "adarshgupta2626@gmail.com"
+            setFormData({
+                email: candidateEmail,
+                password: candidatePassword
+            })
+            // Auto submit after a short delay
+            setTimeout(() => {
+                dispatch(login(candidateEmail, candidatePassword, navigate))
+            }, 500)
+        } else if (demoType === 'candidate') {
+            // If candidate demo was clicked, pre-fill interviewer details
+            const interviewerEmail = "agnostcsm@gmail.com"
+            const interviewerPassword = "agnostcsm@gmail.com"
+            setFormData({
+                email: interviewerEmail,
+                password: interviewerPassword
+            })
+            // Auto submit after a short delay
+            setTimeout(() => {
+                dispatch(login(interviewerEmail, interviewerPassword, navigate))
+            }, 500)
+        } else if (demoType === 'recruiter') {
+            // If recruiter demo was clicked, pre-fill candidate details
+            const candidateEmail = "adarshgupta2626@gmail.com"
+            const candidatePassword = "adarshgupta2626@gmail.com"
+            setFormData({
+                email: candidateEmail,
+                password: candidatePassword
+            })
+            // Auto submit after a short delay
+            setTimeout(() => {
+                dispatch(login(candidateEmail, candidatePassword, navigate))
+            }, 500)
+        }
+    }, [dispatch, navigate])
 
     const handleOnChange = (e) => {
         setFormData((prevData) => ({
@@ -28,26 +73,75 @@ function LoginForm() {
         dispatch(login(email, password, navigate))
     }
 
+    const openInIncognito = (demoType) => {
+        const baseUrl = window.location.origin // Use current origin instead of hardcoded URL
+        const loginUrl = `${baseUrl}/login?demo=${demoType}`
+
+        try {
+            const features = [
+                'incognito=yes',
+                'private=yes',
+                'private=true,incognito=yes',
+                'chrome=yes,incognito=yes',
+                'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=1024,height=768'
+            ]
+
+            let windowOpened = false
+            for (const feature of features) {
+                const newWindow = window.open(loginUrl, '_blank', feature)
+                if (newWindow) {
+                    windowOpened = true
+                    break
+                }
+            }
+
+            if (!windowOpened) {
+                toast.info(
+                    "To open in incognito mode:\n" +
+                    "1. Press Ctrl+Shift+N (Windows) or Cmd+Shift+N (Mac) to open incognito\n" +
+                    "2. Copy this link: " + loginUrl + "\n" +
+                    "3. Paste in the incognito window",
+                    { duration: 10000 }
+                )
+            }
+        } catch (error) {
+            console.error("Error opening incognito window:", error)
+            toast.error("Please open incognito mode manually (Ctrl+Shift+N or Cmd+Shift+N)")
+        }
+    }
+
     // Demo login handlers
     const handleCandidateDemo = () => {
-        setFormData({
-            email: "adarshgupta2626@gmail.com",
-            password: "adarshgupta2626@gmail.com"
-        })
+        const demoEmail = "adarshgupta2626@gmail.com"
+        const demoPassword = "adarshgupta2626@gmail.com"
+        setFormData({ email: demoEmail, password: demoPassword })
+        // Auto login in main window
+        setTimeout(() => {
+            dispatch(login(demoEmail, demoPassword, navigate))
+        }, 100)
+        openInIncognito('candidate')
     }
 
     const handleRecruiterDemo = () => {
-        setFormData({
-            email: "beyog88735@noefa.com",
-            password: "beyog88735@noefa.com"
-        })
+        const demoEmail = "beyog88735@noefa.com"
+        const demoPassword = "beyog88735@noefa.com"
+        setFormData({ email: demoEmail, password: demoPassword })
+        // Auto login in main window
+        setTimeout(() => {
+            dispatch(login(demoEmail, demoPassword, navigate))
+        }, 100)
+        openInIncognito('recruiter')
     }
 
     const handleInterviewerDemo = () => {
-        setFormData({
-            email: "agnostcsm@gmail.com",
-            password: "agnostcsm@gmail.com"
-        })
+        const demoEmail = "agnostcsm@gmail.com"
+        const demoPassword = "agnostcsm@gmail.com"
+        setFormData({ email: demoEmail, password: demoPassword })
+        // Auto login in main window
+        setTimeout(() => {
+            dispatch(login(demoEmail, demoPassword, navigate))
+        }, 100)
+        openInIncognito('interviewer')
     }
 
     return (
@@ -95,6 +189,7 @@ function LoginForm() {
                 </div>
             </div>
 
+            {/* Rest of the form remains the same */}
             <div className="flex items-center gap-2 mb-4">
                 <div className="h-[1px] w-full bg-richblack-700"></div>
                 <p className="text-richblack-300 font-medium">OR</p>

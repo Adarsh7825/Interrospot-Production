@@ -32,7 +32,18 @@ function App() {
       <Router>
         <div className="w-screen min-h-screen bg-richblack-900 flex flex-col font-inter">
           <Navbar />
-          <ToastContainer autoClose={2000} />
+          <ToastContainer
+            position="top-right"
+            autoClose={2000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+          />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="signup" element={<Signup />} />

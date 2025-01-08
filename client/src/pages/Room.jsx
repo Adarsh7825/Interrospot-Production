@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { DataContext } from '../context/DataContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch, useSelector } from "react-redux";
 import Ace from "../components/core/Room/Ace";
@@ -206,6 +206,9 @@ const Room = () => {
                             <p className="text-gray-400 text-sm">Connected Users: {inRoomUsers.length}</p>
                         </div>
                     </div>
+                    <div className="flex flex-col">
+                        <h1 className="text-white text-xl font-bold">Name: <span className="text-[#E94560]">{user.firstName}</span></h1>
+                    </div>
                     <div className="flex items-center space-x-6">
                         {user.accountType !== ACCOUNT_TYPE.CANDIDATE && (
                             <GeneratePDF
@@ -259,7 +262,7 @@ const Room = () => {
                     {/* Right Panel */}
                     <div className="flex flex-col w-[40%] rounded-xl bg-[#0F3460]/30 backdrop-blur-lg border border-[#533483]/20 shadow-xl">
                         {/* Enhanced Tabs */}
-                        <div className="flex p-2 gap-2">
+                        <div className="flex p-2 gap-2 text-white">
                             <button
                                 className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'console'
                                     ? 'bg-[#E94560] text-white shadow-lg shadow-[#E94560]/50'
@@ -376,12 +379,6 @@ const Room = () => {
                         </div>
                     ))
                 }
-
-                <ToastContainer
-                    position="bottom-right"
-                    autoClose={2000}
-                    theme="dark"
-                />
             </div>
         );
     }

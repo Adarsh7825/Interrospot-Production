@@ -60,10 +60,19 @@ const Ace = ({
             console.error('Old Value is undefined');
             return;
         }
-        const patch = dmp.patch_make(initializedCode, newValue);
-        setInitializedCode(newValue);
-        updateRoom(patch);
-        setCode(newValue);
+
+        try {
+            const patch = dmp.patch_make(initializedCode, newValue);
+            setInitializedCode(newValue);
+
+            // Create and emit the patch
+            updateRoom(patch);
+            setCode(newValue);
+        } catch (error) {
+            console.error('Error creating patch:', error);
+            // Request full room data in case of error
+            dispatch(updateRooms(roomid, newValue, language, user.token));
+        }
     };
 
     const handleIOChange = (newValue) => {

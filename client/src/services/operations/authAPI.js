@@ -97,7 +97,11 @@ export function login(email, password, navigate) {
                 throw new Error(response?.data?.message)
             }
 
-            toast.success("Login Successful")
+            // toast.success("Login Successful")
+            // welcome user
+            toast.success(`Welcome back, ${response?.data?.user?.firstName}`, {
+                autoClose: 3000,
+            })
             dispatch(setToken(response?.data?.token))
             const userImage = response?.data?.user?.image
                 ? response.data.user.image

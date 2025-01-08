@@ -1,7 +1,5 @@
 import { diff_match_patch } from 'diff-match-patch';
 
-const dmp = new diff_match_patch();
-
 export const setupSocketHandlers = (socket, {
     name,
     roomid,
@@ -22,6 +20,10 @@ export const setupSocketHandlers = (socket, {
     setOverallFeedback,
     toast,
 }) => {
+    const dmp = new diff_match_patch();
+    let lastSyncedCode = code;
+    let isLocalChange = false;
+
     socket.on('connect', () => {
         console.log('Connected');
     });
@@ -41,13 +43,13 @@ export const setupSocketHandlers = (socket, {
         console.log("join gave me this data\n", room, "\n");
         toast(msg);
 
+        lastSyncedCode = room.code;
         setCode(room.code);
         setLanguage(room.language);
         setInput(room.input);
         setOutput(room.output);
         setInRoomUsers(room.users);
         socket.off('join');
-        console.log(room);
     });
 
     socket.on('userJoin', ({ msg, newUser }) => {
@@ -57,43 +59,69 @@ export const setupSocketHandlers = (socket, {
     });
 
     socket.on('userLeft', ({ msg, userId }) => {
-        console.log('userLeft', msg);
         const arr = inRoomUsers.filter(user => user.id !== userId);
         setInRoomUsers(arr);
-        console.log('userLeft', inRoomUsers);
         toast.error(msg);
     });
 
-    socket.on('update', ({ patch }) => {
-        console.log('Received patch:', patch);
-        const currentCode = EditorRef.current.editor.getValue();
-        const [newCode, results] = dmp.patch_apply(patch, currentCode);
-        if (results[0] === true) {
-            const pos = EditorRef.current.editor.getCursorPosition();
-            let oldn = currentCode.split('\n').length;
-            let newn = newCode.split('\n').length;
-            setCode(newCode);
-            const newrow = pos.row + newn - oldn;
-            if (oldn !== newn) {
-                EditorRef.current.editor.gotoLine(newrow, pos.column);
+    socket.on('update', ({ patch, senderId }) => {
+        if (isLocalChange) {
+            isLocalChange = false;
+            return;
+        }
+
+        const editor = EditorRef.current.editor;
+        const currentCode = editor.getValue();
+        const cursorPosition = editor.getCursorPosition();
+        const selection = editor.getSelection();
+
+        try {
+            // Apply the patch to lastSyncedCode instead of current code
+            const [newCode, results] = dmp.patch_apply(patch, lastSyncedCode);
+
+            if (results[0]) {
+                // Calculate line and column differences
+                const oldLines = lastSyncedCode.split('\n');
+                const newLines = newCode.split('\n');
+                const currentLine = oldLines[cursorPosition.row] || '';
+                const newLine = newLines[cursorPosition.row] || '';
+
+                // Update the reference code
+                lastSyncedCode = newCode;
+                setCode(newCode);
+
+                // Adjust cursor position based on line changes
+                const newPosition = {
+                    row: Math.min(cursorPosition.row, newLines.length - 1),
+                    column: Math.min(cursorPosition.column, newLine.length)
+                };
+
+                // Use setTimeout to ensure the editor has updated
+                setTimeout(() => {
+                    editor.moveCursorToPosition(newPosition);
+                    if (!selection.isEmpty()) {
+                        editor.clearSelection();
+                    }
+                }, 0);
+            } else {
+                console.error('Failed to apply patch, requesting full room data');
+                socket.emit('getRoom', { roomid });
             }
-            console.log('Patch applied successfully on client. New code:', newCode);
-        } else {
-            console.log('Error applying patch on client');
+        } catch (error) {
+            console.error('Error applying patch:', error);
             socket.emit('getRoom', { roomid });
         }
     });
 
     socket.on('getRoom', ({ room }) => {
+        lastSyncedCode = room.code;
         setCode(room.code);
         setLanguage(room.language);
         setInput(room.input);
         setOutput(room.output);
-        console.log('Received full room data:', room);
     });
 
     socket.on('updateIO', ({ newinput, newoutput, newlanguage }) => {
-        console.log('updateIo', newinput, newoutput, newlanguage);
         setLanguage(newlanguage);
         setInput(newinput);
         setOutput(newoutput);
