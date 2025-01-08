@@ -144,11 +144,11 @@ exports.createInterviewAndSession = async (jobPositionId, candidates) => {
 
                     await session.save();
                     console.log(`Interview session created successfully for candidate: ${candidate._id}`);
-                    console.log(`Interview session created successfully for interviewer: ${interviewer.email} with candidate Name ${candidate.name}`);
+                    console.log(`Interview session created successfully for interviewer: ${interviewer.email}`);
                     sessionCreated = true;
 
                     // Generate the session link using the room's ID
-                    const sessionLink = `https://interrospot.vercel.app/roomdata/${createdRoom.roomid}`;
+                    const sessionLink = `${baseUrl}/roomdata/${createdRoom.roomid}`;
                     console.log(`${sessionLink}`)
                     await mailSender([
                         {
