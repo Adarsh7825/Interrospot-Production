@@ -20,6 +20,7 @@ const httpserver = createServer(app);
 const initSocketIo = require('./initSocket');
 const port = process.env.PORT || 8181;
 require('dotenv').config();
+const keepAlive = require('./utils/keepAlive');
 
 app.use(fileUpload());
 app.use(bodyParser.json({ limit: '1mb' }));
@@ -52,8 +53,16 @@ app.use('/api/v1/recruiter', recruiterRoutes);
 app.use('/api/v1/question', QuestionRoutes);
 app.use('/api/v1/captureImage', captureImageRoutes)
 app.use('/api/v1/sendpdftorecruiter', sendPdf)
+
+// Add a health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 httpserver.listen(port, () => {
     console.log("Server started on port 8181");
+    // Start the keep-alive mechanism
+    keepAlive();
 });
 
 dbConnect().then(() => {

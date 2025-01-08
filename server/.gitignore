@@ -1,1 +1,4 @@
 .vercel
+node_modules/
+.env
+# Keep everything else tracked
