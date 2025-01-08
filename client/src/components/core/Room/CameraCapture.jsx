@@ -57,7 +57,7 @@ const CameraCapture = ({ onCapture, roomId }) => {
             <video ref={videoRef} className="w-full rounded-lg mb-4"></video>
             <button
                 onClick={capturePhoto}
-                className="px-4 py-2 bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                className="px-4 py-2 bg-green-600  text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
             >
                 Capture Photo
             </button>
