@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, matchPath, useLocation } from 'react-router-dom'
+import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
 
 import { NavbarLinks } from "../../data/navbar-links"
 import InterroSpot from '../../assets/Logo/Logo-Full-Light.png'
@@ -11,12 +11,19 @@ import MobileProfileDropDown from '../core/Auth/MobileProfileDropDown'
 
 const Navbar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { token } = useSelector((state) => state.auth);
     const { user } = useSelector((state) => state.profile);
     const [subLinks, setSubLinks] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Check if current route is a room route
+    const isRoomRoute = location.pathname.startsWith('/room/');
 
+    // If we're in a room route, don't show the navbar
+    if (isRoomRoute) {
+        return null;
+    }
 
     // when user click Navbar link then it will hold yellow color
     const matchRoute = (route) => {
@@ -47,6 +54,14 @@ const Navbar = () => {
 
         setLastScrollY(window.scrollY);
     }
+
+    const handleNavClick = (link) => {
+        if (link.protected && !token) {
+            navigate('/login');
+            return;
+        }
+        navigate(link.path);
+    };
 
     return (
         <nav className={`z-[10] flex h-14 w-full items-center justify-center border-b-[1px] border-b-richblack-700 text-white translate-y-0 transition-all ${showNavbar} `}>
@@ -86,12 +101,15 @@ const Navbar = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <Link to={link.path}>
+                                        <div
+                                            onClick={() => handleNavClick(link)}
+                                            className="cursor-pointer"
+                                        >
                                             <p className={`${matchRoute(link.path) ? "text-yellow-25" : "text-richblack-25"
                                                 }`}>
                                                 {link.title}
                                             </p>
-                                        </Link>
+                                        </div>
                                     )
                                 }
                             </li>

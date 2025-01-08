@@ -4,29 +4,32 @@ export const NavbarLinks = [
     path: "/",
   },
   {
-    title: "Practice",
-    path: "/practice",
-    sublinks: [
-      {
-        title: "Coding Problems",
-        path: "/practice/problems"
-      },
-      {
-        title: "Interview Questions",
-        path: "/practice/questions"
-      }
-    ]
+    title: "Learn More",
+    path: "/about",
   },
   {
-    title: "Mock Interviews",
-    path: "/interviews",
+    title: "Create Interview",
+    path: "/dashboard/create-interview",
+    protected: true,
+  },
+  {
+    title: "Join Room",
+    path: "/join-room",
+    protected: true,
   },
   {
     title: "Pair Programming",
     path: "/pair-programming",
+    protected: true,
   },
   {
-    title: "Resources",
-    path: "/resources",
+    title: "Sample Room",
+    path: "/sample-room",
+    protected: true,
+  },
+  {
+    title: "Dashboard",
+    path: "/dashboard/my-profile",
+    protected: true,
   }
 ];
