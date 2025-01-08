@@ -43,6 +43,13 @@ function LoginForm() {
         })
     }
 
+    const handleInterviewerDemo = () => {
+        setFormData({
+            email: "agnostcsm@gmail.com",
+            password: "agnostcsm@gmail.com"
+        })
+    }
+
     return (
         <form
             onSubmit={handleOnSubmit}
@@ -51,7 +58,7 @@ function LoginForm() {
             {/* Demo Account Selection */}
             <div className="flex flex-col gap-y-4 mb-6">
                 <h3 className="text-richblack-5 text-lg font-semibold">Quick Access Demo Accounts</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
                         type="button"
                         onClick={handleCandidateDemo}
@@ -72,6 +79,17 @@ function LoginForm() {
                         <div className="flex flex-col items-start">
                             <span className="font-semibold">Recruiter Demo</span>
                             <span className="text-xs text-richblack-300">Conduct Interviews</span>
+                        </div>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleInterviewerDemo}
+                        className="flex items-center justify-center gap-2 rounded-lg bg-richblack-800 py-3 px-4 text-richblack-5 hover:bg-richblack-700 border border-richblack-700 transition-all duration-200"
+                    >
+                        <FaUserTie className="text-xl" />
+                        <div className="flex flex-col items-start">
+                            <span className="font-semibold">Interviewer Demo</span>
+                            <span className="text-xs text-richblack-300">Take Interviews</span>
                         </div>
                     </button>
                 </div>
