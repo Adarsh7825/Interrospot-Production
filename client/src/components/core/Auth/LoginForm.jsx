@@ -119,7 +119,7 @@ function LoginForm() {
         setTimeout(() => {
             dispatch(login(demoEmail, demoPassword, navigate))
         }, 100)
-        openInIncognito('candidate')
+        // openInIncognito('candidate')
     }
 
     const handleRecruiterDemo = () => {
@@ -130,7 +130,7 @@ function LoginForm() {
         setTimeout(() => {
             dispatch(login(demoEmail, demoPassword, navigate))
         }, 100)
-        openInIncognito('recruiter')
+        // openInIncognito('recruiter')
     }
 
     const handleInterviewerDemo = () => {
@@ -141,7 +141,7 @@ function LoginForm() {
         setTimeout(() => {
             dispatch(login(demoEmail, demoPassword, navigate))
         }, 100)
-        openInIncognito('interviewer')
+        // openInIncognito('interviewer')
     }
 
     return (
@@ -154,9 +154,14 @@ function LoginForm() {
                 <h3 className="text-richblack-5 text-lg font-semibold">Quick Access Demo Accounts</h3>
                 <div className="bg-richblack-900 p-3 rounded-lg border border-richblack-700 mb-4">
                     <p className="text-richblack-200 text-sm">
-                        <span className="text-yellow-50">Note:</span> Clicking any demo account will automatically:
+                        <span className="text-yellow-50">Note:</span> Clicking any demo account will:
                         <br />1. Log you in on this window
-                        <br />2. Open an incognito window with the other role for testing the real-time interaction
+                        <br />2. Provide instructions to open an incognito window for the complementary role
+                        <br /><br />
+                        <span className="text-yellow-50">💡 Pro Tip:</span> For the best testing experience:
+                        <br />• Use incognito mode to simulate different users simultaneously
+                        <br />• Test real-time interactions between roles (e.g., Candidate-Interviewer)
+                        <br />• Experience the full interview flow from both perspectives
                     </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
