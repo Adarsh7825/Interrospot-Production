@@ -23,6 +23,7 @@ export const setupSocketHandlers = (socket, {
     const dmp = new diff_match_patch();
     let lastSyncedCode = code;
     let isLocalChange = false;
+    let isFirstJoin = true;
 
     socket.on('connect', () => {
         console.log('Connected');
@@ -43,11 +44,15 @@ export const setupSocketHandlers = (socket, {
         console.log("join gave me this data\n", room, "\n");
         toast(msg);
 
-        lastSyncedCode = room.code;
-        setCode(room.code);
-        setLanguage(room.language);
-        setInput(room.input);
-        setOutput(room.output);
+        if (isFirstJoin) {
+            lastSyncedCode = room.code;
+            setCode(room.code);
+            setLanguage(room.language);
+            setInput(room.input);
+            setOutput(room.output);
+            isFirstJoin = false;
+        }
+
         setInRoomUsers(room.users);
         socket.off('join');
     });
@@ -70,7 +75,9 @@ export const setupSocketHandlers = (socket, {
             return;
         }
 
-        const editor = EditorRef.current.editor;
+        const editor = EditorRef.current?.editor;
+        if (!editor) return;
+
         const currentCode = editor.getValue();
         const cursorPosition = editor.getCursorPosition();
         const selection = editor.getSelection();
@@ -98,9 +105,11 @@ export const setupSocketHandlers = (socket, {
 
                 // Use setTimeout to ensure the editor has updated
                 setTimeout(() => {
-                    editor.moveCursorToPosition(newPosition);
-                    if (!selection.isEmpty()) {
-                        editor.clearSelection();
+                    if (editor) {
+                        editor.moveCursorToPosition(newPosition);
+                        if (!selection.isEmpty()) {
+                            editor.clearSelection();
+                        }
                     }
                 }, 0);
             } else {
@@ -114,11 +123,13 @@ export const setupSocketHandlers = (socket, {
     });
 
     socket.on('getRoom', ({ room }) => {
-        lastSyncedCode = room.code;
-        setCode(room.code);
-        setLanguage(room.language);
-        setInput(room.input);
-        setOutput(room.output);
+        if (!isFirstJoin) {
+            lastSyncedCode = room.code;
+            setCode(room.code);
+            setLanguage(room.language);
+            setInput(room.input);
+            setOutput(room.output);
+        }
     });
 
     socket.on('updateIO', ({ newinput, newoutput, newlanguage }) => {
@@ -132,7 +143,8 @@ export const setupSocketHandlers = (socket, {
     });
 
     socket.on('error', ({ error }) => {
-        console.log('error from socket call', error);
+        console.error('Socket error:', error);
+        toast.error('Connection error occurred');
     });
 };
 

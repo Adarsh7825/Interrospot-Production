@@ -145,8 +145,8 @@ const Home = () => {
                             </span>
                         </CTAButton>
 
-                        {token && (user?.accountType === "RECRUITER" || user?.accountType === "INTERVIEWER") && (
-                            <CTAButton active={false} linkto={"/dashboard/create-interview"}>
+                        {token && (user?.accountType === "recruiter" || user?.accountType === "interviewer") && (
+                            <CTAButton active={false} linkto={"/dashboard/form"}>
                                 <span className="flex items-center gap-2">
                                     Create Interview
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -9,22 +9,17 @@ export const NavbarLinks = [
   },
   {
     title: "Create Interview",
-    path: "/dashboard/create-interview",
-    protected: true,
-  },
-  {
-    title: "Join Room",
-    path: "/join-room",
+    path: "/dashboard/form",
     protected: true,
   },
   {
     title: "Pair Programming",
-    path: "/pair-programming",
+    path: "/create-room",
     protected: true,
   },
   {
     title: "Sample Room",
-    path: "/sample-room",
+    path: "/roomdata/NX5oHS",
     protected: true,
   },
   {

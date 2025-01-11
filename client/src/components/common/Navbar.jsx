@@ -16,6 +16,28 @@ const Navbar = () => {
     const { user } = useSelector((state) => state.profile);
     const [subLinks, setSubLinks] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [showNavbar, setShowNavbar] = useState('top');
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    // when user scroll down , we will hide navbar , and if suddenly scroll up , we will show navbar 
+    useEffect(() => {
+        window.addEventListener('scroll', controlNavbar);
+        return () => {
+            window.removeEventListener('scroll', controlNavbar);
+        }
+    }, [lastScrollY]);
+
+    // control Navbar
+    const controlNavbar = () => {
+        if (window.scrollY > 200) {
+            if (window.scrollY > lastScrollY)
+                setShowNavbar('hide')
+            else setShowNavbar('show')
+        }
+        else setShowNavbar('top')
+
+        setLastScrollY(window.scrollY);
+    }
 
     // Check if current route is a room route
     const isRoomRoute = location.pathname.startsWith('/room/');
@@ -28,31 +50,6 @@ const Navbar = () => {
     // when user click Navbar link then it will hold yellow color
     const matchRoute = (route) => {
         return matchPath({ path: route }, location.pathname);
-    }
-
-    // when user scroll down , we will hide navbar , and if suddenly scroll up , we will show navbar 
-    const [showNavbar, setShowNavbar] = useState('top');
-    const [lastScrollY, setLastScrollY] = useState(0);
-    useEffect(() => {
-        window.addEventListener('scroll', controlNavbar);
-
-        return () => {
-            window.removeEventListener('scroll', controlNavbar);
-        }
-    },)
-
-    // control Navbar
-    const controlNavbar = () => {
-        if (window.scrollY > 200) {
-            if (window.scrollY > lastScrollY)
-                setShowNavbar('hide')
-
-            else setShowNavbar('show')
-        }
-
-        else setShowNavbar('top')
-
-        setLastScrollY(window.scrollY);
     }
 
     const handleNavClick = (link) => {

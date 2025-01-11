@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { DataContext } from '../context/DataContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch, useSelector } from "react-redux";
@@ -21,15 +21,18 @@ ace.config.set('basePath', '/ace-builds/src-noconflict');
 
 const Room = () => {
     const userVideoRef = useRef(null);
-    const { currRoom, socket } = useContext(DataContext);
+    const { currRoom, socket, socketConnected } = useContext(DataContext);
     const { user } = useSelector((state) => state.profile);
     const { token } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [language, setLanguage] = useState(currRoom ? currRoom.language : "javascript");
-    let [code, setCode] = useState(currRoom ? currRoom.code : defaultCode[language ? language : "javascript"].snippet);
+    const { roomId } = useParams();
     const location = useLocation();
-    let roomid = location.state?.roomid;
+    const [isLoading, setIsLoading] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    const [language, setLanguage] = useState("javascript");
+    const [code, setCode] = useState(defaultCode["javascript"].snippet);
     let name = user ? user.firstName : "";
     const [input, setInput] = useState('');
     const [output, setOutput] = useState('');
@@ -43,48 +46,68 @@ const Room = () => {
     const [clientCursors, setClientCursors] = useState({});
 
     useEffect(() => {
-        if (user?.token === null) {
+        if (!token || !roomId) {
+            toast.error("Invalid room access");
             navigate('/');
+            return;
         }
-        setupSocketHandlers(socket, {
-            name,
-            roomid,
-            code,
-            language,
-            token: user?.token,
-            input,
-            output,
-            avatar: user?.avatar,
-            setCode,
-            setLanguage,
-            setInput,
-            setOutput,
-            setInRoomUsers,
-            EditorRef,
-            inRoomUsers,
-            setQuestions,
-            setOverallFeedback,
-            toast,
-        });
 
-        socket.on("openWhiteBoard", () => {
-            document.querySelector("#white-board").classList.add("active");
-            document.querySelector("#leave-room").classList.add("active");
-        });
+        if (!socketConnected) {
+            return;
+        }
 
-        socket.on('update-cursor-position', ({ cursors }) => {
-            setClientCursors(cursors);
-        });
+        if (socket && roomId && user && !isInitialized) {
+            setupSocketHandlers(socket, {
+                name,
+                roomid: roomId,
+                code,
+                language,
+                token,
+                input,
+                output,
+                avatar: user?.avatar,
+                setCode: (newCode) => {
+                    if (!isInitialized) {
+                        setCode(newCode);
+                        setIsInitialized(true);
+                    } else {
+                        setCode(newCode);
+                    }
+                },
+                setLanguage,
+                setInput,
+                setOutput,
+                setInRoomUsers,
+                EditorRef,
+                inRoomUsers,
+                setQuestions,
+                setOverallFeedback,
+                toast,
+            });
+
+            socket.on("openWhiteBoard", () => {
+                document.querySelector("#white-board")?.classList.add("active");
+                document.querySelector("#leave-room")?.classList.add("active");
+            });
+
+            socket.on('update-cursor-position', ({ cursors }) => {
+                setClientCursors(cursors);
+            });
+        }
+
+        setIsLoading(false);
 
         return () => {
-            socket.off();
+            if (socket) {
+                socket.off();
+            }
         }
-    }, []);
+    }, [socket, roomId, user, socketConnected]);
 
     useEffect(() => {
         const fetchQuestionsData = async () => {
             try {
-                const questionsData = await fetchQuestions(roomid);
+                const questionsData = await fetchQuestions(roomId);
                 setQuestions(questionsData);
             } catch (error) {
                 console.error('Error fetching questions:', error);
@@ -92,13 +115,13 @@ const Room = () => {
         };
 
         fetchQuestionsData();
-    }, [roomid]);
+    }, [roomId]);
 
     useEffect(() => {
         const handleMouseMove = throttle((e) => {
             const x = e.clientX;
             const y = e.clientY;
-            socket.emit('update-cursor-position', { roomId: roomid, username: user.firstName, x, y });
+            socket.emit('update-cursor-position', { roomId: roomId, username: user.firstName, x, y });
         }, 50);
 
         document.addEventListener('mousemove', handleMouseMove);
@@ -107,7 +130,7 @@ const Room = () => {
             document.removeEventListener('mousemove', handleMouseMove);
             handleMouseMove.cancel();
         };
-    }, [socket, roomid, user.firstName]);
+    }, [socket, roomId, user.firstName]);
 
 
     const run = async () => {
@@ -115,7 +138,7 @@ const Room = () => {
             setRunning(true);
             dispatch(executeCode({ code, language, input }, (newOutput) => {
                 setOutput(newOutput);
-                socket.emit('updateOutput', { roomid, newOutput });
+                socket.emit('updateOutput', { roomid: roomId, newOutput });
             }));
         } catch (error) {
             console.log(error);
@@ -188,21 +211,35 @@ const Room = () => {
 
     const overallFeedbackVerdict = calculateOverallFeedback();
 
+    if (!token || !roomId) {
+        return null;
+    }
+
+    if (isLoading || !socketConnected) {
+        return (
+            <div className="mt-14 h-screen bg-gradient-to-br from-[#1A1A2E] to-[#16213E] flex items-center justify-center">
+                <div className="text-white text-xl">
+                    Connecting to room...
+                </div>
+            </div>
+        );
+    }
+
     if (user.rooms && user) {
         return (
-            <div className="h-screen bg-gradient-to-br from-[#1A1A2E] to-[#16213E] flex flex-col">
+            <div className="mt-14 h-screen bg-gradient-to-br from-[#1A1A2E] to-[#16213E] flex flex-col">
                 {/* Enhanced Header */}
                 <header className="bg-[#0F3460]/50 backdrop-blur-md px-8 py-4 flex items-center justify-between border-b border-[#533483]/20">
                     <div className="flex items-center space-x-6">
                         <button
-                            onClick={() => leaveRoom(socket, roomid, navigate)}
+                            onClick={() => leaveRoom(socket, roomId, navigate)}
                             className="group px-5 py-2.5 bg-gradient-to-r from-[#E94560] to-[#533483] hover:from-[#533483] hover:to-[#E94560] text-white rounded-lg flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-[#E94560]/50"
                         >
                             <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
                             <span className="font-medium">Exit Room</span>
                         </button>
                         <div className="flex flex-col">
-                            <h1 className="text-white text-xl font-bold">Room: <span className="text-[#E94560]">{roomid}</span></h1>
+                            <h1 className="text-white text-xl font-bold">Room: <span className="text-[#E94560]">{roomId}</span></h1>
                             <p className="text-gray-400 text-sm">Connected Users: {inRoomUsers.length}</p>
                         </div>
                     </div>
@@ -212,7 +249,7 @@ const Room = () => {
                     <div className="flex items-center space-x-6">
                         {user.accountType !== ACCOUNT_TYPE.CANDIDATE && (
                             <GeneratePDF
-                                roomid={roomid}
+                                roomid={roomId}
                                 questions={questions}
                                 overallFeedback={overallFeedbackVerdict}
                             />
@@ -241,18 +278,18 @@ const Room = () => {
                     <div className="flex flex-col w-[60%] rounded-xl bg-[#0F3460]/30 backdrop-blur-lg border border-[#533483]/20 shadow-xl">
                         <div className="flex-1 p-2">
                             <Ace
-                                updateRoom={(patch) => socket.emit('update', { roomid, patch })}
+                                updateRoom={(patch) => socket.emit('update', { roomid: roomId, patch })}
                                 code={code}
                                 setCode={setCode}
                                 language={language}
                                 setLanguage={setLanguage}
-                                roomid={roomid}
+                                roomid={roomId}
                                 EditorRef={EditorRef}
                                 input={input}
                                 setInput={setInput}
                                 output={output}
                                 setOutput={setOutput}
-                                IOEMIT={(a, b, c) => socket.emit('updateIO', { roomid, input: a, output: b, language: c })}
+                                IOEMIT={(a, b, c) => socket.emit('updateIO', { roomid: roomId, input: a, output: b, language: c })}
                                 run={run}
                                 running={running}
                             />
@@ -326,7 +363,7 @@ const Room = () => {
                 {/* Video Chat and Whiteboard */}
                 <VideoChat
                     socket={socket}
-                    roomid={roomid}
+                    roomid={roomId}
                     user={user}
                     userVideo={userVideoRef}
                     closeIt={() => {
@@ -338,7 +375,7 @@ const Room = () => {
                         }
                     }}
                 />
-                <WhiteBoard roomId={roomid} socket={socket} />
+                <WhiteBoard roomId={roomId} socket={socket} />
 
                 {/* Enhanced Cursor Indicators */}
                 {Object.entries(clientCursors)
