@@ -31,8 +31,10 @@ app.use(express.urlencoded({ extended: true })); // For URL-encoded payloads
 const io = new Server(httpserver, {
     cors: {
         origin: "*",
-        transports: ['websocket', 'polling'], credentials: true
-    }, allowEIO3: true
+        transports: ['websocket', 'polling'],
+        credentials: true
+    },
+    allowEIO3: true
 });
 
 const connection = {

@@ -31,5 +31,8 @@
     "socket.io": "^4.7.5",
     "tempfile": "^5.0.0",
     "validator": "^13.11.0"
+  },
+  "devDependencies": {
+    "artillery": "^2.0.21"
   }
 }
