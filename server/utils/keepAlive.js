@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const SERVER_URL = 'https://interrospot-production.onrender.com';
+const SERVER_URL = 'https://interrospot-production-1.onrender.com';
 
 // Define active hours (e.g., 8 AM to 10 PM IST)
 const ACTIVE_START_HOUR = 2; // 2 AM UTC = 7:30 AM IST
